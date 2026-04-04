@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RE:SONANTING ECHOES</title>
+    <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
+    <style>
+        body {
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #050505;
+            color: #00ffff;
+            font-family: 'VT323', monospace;
+            flex-direction: column;
+            overflow: hidden;
+            background-image: 
+                linear-gradient(rgba(0, 255, 255, 0.05) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 255, 255, 0.05) 1px, transparent 1px);
+            background-size: 40px 40px;
+        }
+
+        /* 🚨 화려한 타이틀 화면 스타일 */
+        #title-screen {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background: rgba(10, 10, 10, 0.95);
+            padding: 40px 60px;
+            border: 2px solid #00ffff;
+            box-shadow: 0 0 30px #00ffff, inset 0 0 20px #ff00ff;
+            z-index: 100;
+            text-align: center;
+            width: 450px;
+        }
+
+        h1.game-title {
+            font-size: 70px;
+            margin: 0 0 10px 0;
+            color: #fff;
+            text-shadow: 0 0 10px #ff00ff, 0 0 20px #ff00ff, 0 0 40px #ff00ff;
+            letter-spacing: 5px;
+        }
+
+        .subtitle {
+            color: #00ffff;
+            font-size: 24px;
+            margin-bottom: 30px;
+            letter-spacing: 2px;
+        }
+
+        .menu-section {
+            width: 100%;
+            text-align: left;
+            margin-bottom: 20px;
+        }
+
+        select {
+            width: 100%;
+            background: #111;
+            color: #00ffff;
+            border: 1px solid #00ffff;
+            font-family: 'VT323', monospace;
+            font-size: 24px;
+            padding: 8px 10px;
+            margin-top: 10px;
+            outline: none;
+            cursor: pointer;
+        }
+
+        select:focus {
+            box-shadow: 0 0 10px #00ffff;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        input[type="file"] {
+            color: #00ffff;
+            font-size: 18px;
+            font-family: 'VT323', monospace;
+            margin-top: 10px;
+            width: 100%;
+        }
+
+        .sliders-container {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            width: 100%;
+            border-top: 1px dashed #ff00ff;
+            padding-top: 15px;
+            margin-bottom: 30px;
+        }
+
+        .slider-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 22px;
+            color: #fff;
+        }
+
+        input[type="range"] {
+            accent-color: #00ffff;
+            cursor: pointer;
+        }
+        input[type="range"].right-slider {
+            accent-color: #ff00ff;
+        }
+
+        button#startBtn {
+            padding: 15px 40px;
+            font-size: 32px;
+            font-family: 'VT323', monospace;
+            background-color: transparent;
+            color: #00ffff;
+            border: 2px solid #00ffff;
+            cursor: pointer;
+            transition: 0.3s;
+            box-shadow: 0 0 15px #00ffff;
+            width: 100%;
+            animation: pulse 1.5s infinite;
+        }
+
+        button#startBtn:hover {
+            background-color: #00ffff;
+            color: #000;
+            box-shadow: 0 0 30px #00ffff;
+            animation: none;
+        }
+
+        @keyframes pulse {
+            0% { box-shadow: 0 0 10px #00ffff; }
+            50% { box-shadow: 0 0 25px #00ffff; }
+            100% { box-shadow: 0 0 10px #00ffff; }
+        }
+
+        canvas {
+            background-color: #000;
+            border: 2px solid #00ffff;
+            box-shadow: 0 0 30px rgba(0, 255, 255, 0.2);
+        }
+
+        .controls-info {
+            margin-top: 20px;
+            font-size: 24px;
+            letter-spacing: 2px;
+            color: #ff00ff;
+            text-shadow: 0 0 5px #ff00ff;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="title-screen">
+        <h1 class="game-title">RE:SONATING<br>ECHOES</h1>
+        <div class="subtitle">AUDIO REACTIVE ARCADE</div>
+
+        <div class="menu-section">
+            <label style="color:#00ffff; font-size:24px;">SELECT TRACK:</label>
+            <select id="trackSelect">
+                <option value="basic1.mp3">1. Piano - EASY</option>
+                <option value="basic2.mp3">2. Human Agi 2 - HARD</option>
+                <option value="basic3.mp3">3. Sky Tavern - EX-HARD</option>
+                <option value="local">▶ UPLOAD LOCAL FILE...</option>
+            </select>
+            
+            <div id="localFileContainer" class="hidden">
+                <input type="file" id="audioFile" accept="audio/mp3, audio/wav">
+            </div>
+        </div>
+        
+        <div class="sliders-container">
+            <div class="slider-row">
+                <span style="color:#00ffff;">LEFT LIMIT: <span id="leftVal">5</span></span>
+                <input type="range" id="leftSens" min="3" max="30" value="5">
+            </div>
+            <div class="slider-row">
+                <span style="color:#ff00ff;">RIGHT LIMIT: <span id="rightVal">3</span></span>
+                <input type="range" id="rightSens" class="right-slider" min="3" max="30" value="3">
+            </div>
+        </div>
+
+        <button id="startBtn">START GAME</button>
+    </div>
+
+    <canvas id="gameCanvas" width="400" height="600" class="hidden"></canvas>
+    <div id="controlsInfo" class="controls-info hidden">LEFT: [A, S, D] | RIGHT: [J, K, L]</div>
+
+    <script src="game.js"></script>
+</body>
+</html>
