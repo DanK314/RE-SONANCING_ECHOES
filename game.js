@@ -529,9 +529,24 @@ function handleInput(side) {
         checkGameOver();
     }
 }
-
 window.addEventListener('keydown', (e) => {
     const key = e.key.toLowerCase();
     if (['a', 's', 'd'].includes(key)) handleInput('left');
     else if (['j', 'k', 'l'].includes(key)) handleInput('right');
 });
+
+// 📱 반응형 모바일 터치 지원
+canvas.addEventListener('touchstart', (e) => {
+    e.preventDefault(); 
+
+    for (let i = 0; i < e.changedTouches.length; i++) {
+        const touch = e.changedTouches[i];
+        
+        // 🚨 캔버스 픽셀 대신, '스마트폰 실제 화면(window)'의 X 좌표를 기준으로 판정!
+        if (touch.clientX < window.innerWidth / 2) {
+            handleInput('left');
+        } else {
+            handleInput('right');
+        }
+    }
+}, { passive: false });

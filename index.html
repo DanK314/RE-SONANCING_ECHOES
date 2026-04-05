@@ -1,9 +1,10 @@
 <!DOCTYPE html>
 <html lang="ko">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>RE:SONANTING ECHOES</title>
+    <title>RE:SONATING ECHOES</title>
     <link rel="icon" type="image/png" href="favicon.png">
     <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
     <style>
@@ -18,32 +19,37 @@
             font-family: 'VT323', monospace;
             flex-direction: column;
             overflow: hidden;
-            background-image: 
+            background-image:
                 linear-gradient(rgba(0, 255, 255, 0.05) 1px, transparent 1px),
                 linear-gradient(90deg, rgba(0, 255, 255, 0.05) 1px, transparent 1px);
             background-size: 40px 40px;
         }
 
-        /* 🚨 화려한 타이틀 화면 스타일 */
+        /* 🚨 반응형 타이틀 화면 */
         #title-screen {
             display: flex;
             flex-direction: column;
             align-items: center;
             background: rgba(10, 10, 10, 0.95);
-            padding: 40px 60px;
+            padding: 40px 40px;
             border: 2px solid #00ffff;
             box-shadow: 0 0 30px #00ffff, inset 0 0 20px #ff00ff;
             z-index: 100;
             text-align: center;
-            width: 450px;
+
+            width: 85%;
+            /* 화면 너비에 맞춤 */
+            max-width: 450px;
+            /* 단, 최대 450px까지만 커짐 */
         }
 
         h1.game-title {
-            font-size: 70px;
+            font-size: 65px;
             margin: 0 0 10px 0;
             color: #fff;
             text-shadow: 0 0 10px #ff00ff, 0 0 20px #ff00ff, 0 0 40px #ff00ff;
             letter-spacing: 5px;
+            line-height: 1.1;
         }
 
         .subtitle {
@@ -55,37 +61,71 @@
 
         .menu-section {
             width: 100%;
-            text-align: left;
+            text-align: center;
             margin-bottom: 20px;
-        }
-
-        select {
-            width: 100%;
-            background: #111;
-            color: #00ffff;
-            border: 1px solid #00ffff;
-            font-family: 'VT323', monospace;
-            font-size: 24px;
-            padding: 8px 10px;
-            margin-top: 10px;
-            outline: none;
-            cursor: pointer;
-        }
-
-        select:focus {
-            box-shadow: 0 0 10px #00ffff;
+            padding: 20px;
+            border: 1px dashed #00ffff;
+            background: rgba(0, 255, 255, 0.05);
+            box-sizing: border-box;
         }
 
         .hidden {
             display: none !important;
         }
 
+        /* 🚨 드롭다운 메뉴 네온 스타일 추가 */
+        #trackSelect {
+            width: 100%;
+            margin-top: 15px;
+            margin-bottom: 15px;
+            padding: 12px;
+            background: rgba(0, 0, 0, 0.8);
+            color: #00ffff;
+            border: 2px solid #00ffff;
+            font-family: 'VT323', monospace;
+            font-size: 20px;
+            cursor: pointer;
+            outline: none;
+            transition: 0.3s;
+            box-sizing: border-box;
+            text-align: center;
+        }
+
+        #trackSelect:focus, #trackSelect:hover {
+            box-shadow: 0 0 15px #00ffff;
+            background: rgba(0, 255, 255, 0.1);
+        }
+
+        #trackSelect option {
+            background: #050505;
+            color: #00ffff;
+            font-size: 20px;
+        }
+
         input[type="file"] {
             color: #00ffff;
             font-size: 18px;
             font-family: 'VT323', monospace;
-            margin-top: 10px;
             width: 100%;
+            cursor: pointer;
+        }
+
+        input[type="file"]::file-selector-button {
+            padding: 8px 16px;
+            margin-right: 15px;
+            background: transparent;
+            color: #ff00ff;
+            border: 2px solid #ff00ff;
+            font-family: 'VT323', monospace;
+            font-size: 20px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        input[type="file"]::file-selector-button:hover {
+            background: #ff00ff;
+            color: #000;
+            box-shadow: 0 0 15px #ff00ff;
         }
 
         .sliders-container {
@@ -110,6 +150,7 @@
             accent-color: #00ffff;
             cursor: pointer;
         }
+
         input[type="range"].right-slider {
             accent-color: #ff00ff;
         }
@@ -141,21 +182,46 @@
             100% { box-shadow: 0 0 10px #00ffff; }
         }
 
+        /* 🚨 반응형 캔버스 (화면 크기에 맞춰 자동 조절) */
         canvas {
             background-color: #000;
             border: 2px solid #00ffff;
             box-shadow: 0 0 30px rgba(0, 255, 255, 0.2);
+
+            /* 최대 너비, 최대 높이를 화면에 맞춤 */
+            max-width: 95vw;
+            max-height: 75vh;
+            width: auto;
+            height: auto;
+            /* 기본 비율(400x600 = 2:3) 유지 */
+            aspect-ratio: 4 / 6;
+            object-fit: contain;
         }
 
         .controls-info {
-            margin-top: 20px;
-            font-size: 24px;
+            margin-top: 15px;
+            font-size: 20px;
             letter-spacing: 2px;
             color: #ff00ff;
             text-shadow: 0 0 5px #ff00ff;
+            text-align: center;
+        }
+
+        /* 📱 모바일 화면을 위한 최적화 (가로 폭 600px 이하) */
+        @media (max-width: 600px) {
+            h1.game-title { font-size: 45px; }
+            .subtitle { font-size: 16px; margin-bottom: 20px; }
+            #title-screen { padding: 25px 20px; }
+            button#startBtn { font-size: 26px; padding: 12px 20px; }
+            .slider-row { font-size: 18px; }
+            input[type="file"]::file-selector-button { font-size: 16px; padding: 6px 12px; }
+            
+            /* 모바일 드롭다운 메뉴 사이즈 조정 */
+            #trackSelect { font-size: 18px; padding: 10px; }
         }
     </style>
 </head>
+
 <body>
 
     <div id="title-screen">
@@ -170,19 +236,19 @@
                 <option value="basic3.mp3">3. Synthesized Drum - EX-HARD</option>
                 <option value="local">▶ UPLOAD LOCAL FILE...</option>
             </select>
-            
+
             <div id="localFileContainer" class="hidden">
-                <input type="file" id="audioFile" accept="audio/mp3, audio/wav">
+                <input type="file" id="audioFile" accept="audio/mp3, audio/wav" style="color:#00ffff; font-size:24px;">
             </div>
         </div>
-        
+
         <div class="sliders-container">
             <div class="slider-row">
-                <span style="color:#00ffff;">LEFT LIMIT: <span id="leftVal">5</span></span>
+                <span style="color:#00ffff;">LEFT LIMIT: <span id="leftVal">6</span></span>
                 <input type="range" id="leftSens" min="3" max="10" value="6">
             </div>
             <div class="slider-row">
-                <span style="color:#ff00ff;">RIGHT LIMIT: <span id="rightVal">3</span></span>
+                <span style="color:#ff00ff;">RIGHT LIMIT: <span id="rightVal">6</span></span>
                 <input type="range" id="rightSens" class="right-slider" min="3" max="10" value="6">
             </div>
         </div>
@@ -191,8 +257,12 @@
     </div>
 
     <canvas id="gameCanvas" width="400" height="600" class="hidden"></canvas>
-    <div id="controlsInfo" class="controls-info hidden">LEFT: [A, S, D] | RIGHT: [J, K, L]</div>
+    <div id="controlsInfo" class="controls-info hidden">
+        PC: [A,S,D] & [J,K,L] <br>
+        MOBILE: TOUCH LEFT / RIGHT
+    </div>
 
     <script src="game.js"></script>
 </body>
+
 </html>
