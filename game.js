@@ -253,6 +253,11 @@ startBtn.addEventListener('click', async () => {
     const selectedValue = trackSelect.value;
 
     if (selectedValue === 'local') {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.fillStyle = '#00ffff';
+        ctx.font = '30px "VT323"';
+        ctx.textAlign = 'center';
+        ctx.fillText('LOADING TRACK...', canvas.width / 2, canvas.height / 2);
         if (!audioInput.files[0]) {
             alert('로컬 파일을 선택해주세요!');
             returnToTitle();
@@ -278,7 +283,7 @@ startBtn.addEventListener('click', async () => {
             const arrayBuffer = await response.arrayBuffer();
             audioCtx.decodeAudioData(arrayBuffer, playAudioBuffer);
         } catch (error) {
-            alert('기본 곡을 불러올 수 없습니다. \n(song1.mp3 파일이 없거나 로컬 서버 환경이 아닙니다.)\n로컬 파일 업로드를 이용해주세요.');
+            alert('기본 곡을 불러올 수 없습니다. \n(파일이 없거나 로컬 서버 환경이 아닙니다.)\n로컬 파일 업로드를 이용해주세요.');
             returnToTitle();
         }
     }
