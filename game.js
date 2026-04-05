@@ -288,7 +288,6 @@ startBtn.addEventListener('click', async () => {
         }
     }
 });
-
 function analyzeAudio(dt) {
     if (!isPlaying || gameState !== 'playing') return;
     
@@ -298,6 +297,7 @@ function analyzeAudio(dt) {
     const dataArray = new Uint8Array(analyser.frequencyBinCount);
     analyser.getByteFrequencyData(dataArray);
     
+    // 🎧 [왼쪽 노트] : 인덱스 0 ~ 4 (심장을 울리는 킥 드럼 & 서브 베이스)
     let lowSum = 0;
     for(let i = 0; i < 5; i++) lowSum += dataArray[i];
     let currentLowVol = lowSum / 5;
@@ -310,23 +310,28 @@ function analyzeAudio(dt) {
         leftCooldown = Cooldown; 
     }
 
-    let highSum = 0;
-    let highCount = 0;
-    for(let i = 10; i < 30; i++) { 
-        highSum += dataArray[i];
-        highCount++;
-    }
-    let currentHighVol = highSum / highCount;
+    // 🎹 [오른쪽 노트] : 인덱스 7 ~ 200 (넓은 대역폭 싹쓸이 모드!)
+    let currentMidVol = 0;
     
-    let highSpike = currentHighVol - prevHighVol;
-    prevHighVol = currentHighVol;
+    // 🚨 안전장치: 200과 실제 오디오 배열 길이 중 작은 값을 선택 (오류 방지)
+    let maxIndex = 100;
+    
+    // 평균을 내지 않고, 해당 구간에서 '가장 큰 볼륨(Peak)'을 찾습니다.
+    for(let i = 7; i < maxIndex; i++) { 
+        if (dataArray[i] > currentMidVol) {
+            currentMidVol = dataArray[i];
+        }
+    }
+    
+    let midSpike = currentMidVol - prevHighVol;
+    prevHighVol = currentMidVol;
 
-    if (highSpike > highSpikeThreshold && currentHighVol > minHighVol && rightCooldown <= 0) {
+    // 최댓값을 쓰기 때문에 스파이크가 아주 확실하게 튑니다.
+    if (midSpike > highSpikeThreshold && currentMidVol > (minHighVol - 50) && rightCooldown <= 0) {
         spawnBall('right');
         rightCooldown = Cooldown; 
     }
 }
-
 function drawBackground() {
     ctx.strokeStyle = '#111';
     ctx.lineWidth = 1;
