@@ -13,6 +13,10 @@ const rightSensSlider = document.getElementById('rightSens');
 const leftValText = document.getElementById('leftVal');
 const rightValText = document.getElementById('rightVal');
 
+// 파티클 토글 설정
+const particleToggle = document.getElementById('particleToggle');
+let enableParticles = true;
+
 let score = 0;
 const maxHp = 100;
 let hp = maxHp;
@@ -21,11 +25,13 @@ let balls = [];
 let messages = [];
 let particles = [];
 
-let gameState = 'title'; // 초기 상태를 타이틀로 변경
+let gameState = 'title';
 
 const hitCenterY = 540; 
 const hitLeftX = 120;
 const hitRightX = 280;
+// 🚨 센터 노트 X좌표 추가 (400의 절반)
+const hitCenterX = 200; 
 const travelTime = 1.0; 
 const ballSpeed = (hitCenterY - 0) / travelTime;
 
@@ -46,12 +52,12 @@ const Cooldown = 0.05;
 
 let leftZoneFlash = 0;
 let rightZoneFlash = 0;
+// 🚨 센터 타겟 플래시 효과 추가
+let centerZoneFlash = 0; 
 let lastTime = 0;
 
-// 타격음 (해당 파일이 폴더에 있어야 작동합니다)
 const HitSound = new Audio("HitSound.wav");
 
-// 🚨 메뉴 곡 선택 변경 이벤트
 trackSelect.addEventListener('change', (e) => {
     if (e.target.value === 'local') {
         localFileContainer.classList.remove('hidden');
@@ -69,6 +75,12 @@ rightSensSlider.addEventListener('input', (e) => {
     highSpikeThreshold = parseInt(e.target.value);
     rightValText.innerText = highSpikeThreshold;
 });
+
+if (particleToggle) {
+    particleToggle.addEventListener('change', (e) => {
+        enableParticles = e.target.checked;
+    });
+}
 
 class Particle {
     constructor(x, y, color) {
@@ -102,6 +114,7 @@ class Particle {
 }
 
 function spawnParticles(x, y, color, count) {
+    if (!enableParticles) return; 
     for (let i = 0; i < count; i++) {
         particles.push(new Particle(x, y, color));
     }
@@ -110,10 +123,20 @@ function spawnParticles(x, y, color, count) {
 class Ball {
     constructor(side) {
         this.side = side;
-        this.x = side === 'left' ? hitLeftX : hitRightX;
+        // 🚨 떨어지는 노트의 위치와 색상을 3가지로 분류
+        if (side === 'left') {
+            this.x = hitLeftX;
+            this.color = '#00ffff';
+        } else if (side === 'right') {
+            this.x = hitRightX;
+            this.color = '#ff00ff';
+        } else if (side === 'center') {
+            this.x = hitCenterX;
+            this.color = '#ffd700'; // 황금색!
+        }
+        
         this.y = -20;
         this.radius = 12;
-        this.color = side === 'left' ? '#00ffff' : '#ff00ff';
         this.history = []; 
     }
     update(dt) {
@@ -126,14 +149,16 @@ class Ball {
         ctx.shadowBlur = 15;
         ctx.shadowColor = this.color;
         
-        for (let i = 0; i < this.history.length; i++) {
-            let pos = this.history[i];
-            let ratio = i / this.history.length;
-            ctx.beginPath();
-            ctx.arc(pos.x, pos.y, this.radius * ratio, 0, Math.PI * 2);
-            ctx.fillStyle = this.color;
-            ctx.globalAlpha = ratio * 0.5;
-            ctx.fill();
+        if (enableParticles) {
+            for (let i = 0; i < this.history.length; i++) {
+                let pos = this.history[i];
+                let ratio = i / this.history.length;
+                ctx.beginPath();
+                ctx.arc(pos.x, pos.y, this.radius * ratio, 0, Math.PI * 2);
+                ctx.fillStyle = this.color;
+                ctx.globalAlpha = ratio * 0.5;
+                ctx.fill();
+            }
         }
 
         ctx.globalAlpha = 1.0;
@@ -177,7 +202,6 @@ function spawnBall(side) {
     balls.push(new Ball(side));
 }
 
-// 🚨 타이틀 화면으로 돌아가는 함수
 function returnToTitle() {
     canvas.classList.add('hidden');
     controlsInfo.classList.add('hidden');
@@ -194,14 +218,12 @@ function checkGameOver() {
             try { source.stop(); } catch(e) {} 
         }
         
-        // 3초 뒤에 타이틀 화면으로 자동 복귀
         drawEndScreen();
         messages = [];
         setTimeout(returnToTitle, 3000);
     }
 }
 
-// 🚨 중복되는 오디오 재생 로직 묶기
 function playAudioBuffer(buffer) {
     source = audioCtx.createBufferSource();
     source.buffer = buffer;
@@ -215,7 +237,7 @@ function playAudioBuffer(buffer) {
                 gameState = 'ended'; 
                 isPlaying = false;
                 drawEndScreen();
-                setTimeout(returnToTitle, 3000); // 3초 뒤 타이틀 복귀
+                setTimeout(returnToTitle, 3000); 
             }, travelTime * 1000);
         }
     };
@@ -233,9 +255,7 @@ function playAudioBuffer(buffer) {
     requestAnimationFrame(gameLoop);
 }
 
-// 🚨 시작 버튼 클릭 시 메인 로직
 startBtn.addEventListener('click', async () => {
-    // 게임 화면 전환
     titleScreen.classList.add('hidden');
     canvas.classList.remove('hidden');
     controlsInfo.classList.remove('hidden');
@@ -269,7 +289,6 @@ startBtn.addEventListener('click', async () => {
         };
         reader.readAsArrayBuffer(audioInput.files[0]);
     } else {
-        // 🚨 기본 곡 로딩 애니메이션
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         ctx.fillStyle = '#00ffff';
         ctx.font = '30px "VT323"';
@@ -277,7 +296,6 @@ startBtn.addEventListener('click', async () => {
         ctx.fillText('LOADING TRACK...', canvas.width / 2, canvas.height / 2);
 
         try {
-            // URL에서 오디오 데이터 Fetch (가져오기)
             const response = await fetch(selectedValue);
             if (!response.ok) throw new Error("Network error");
             const arrayBuffer = await response.arrayBuffer();
@@ -288,6 +306,7 @@ startBtn.addEventListener('click', async () => {
         }
     }
 });
+
 function analyzeAudio(dt) {
     if (!isPlaying || gameState !== 'playing') return;
     
@@ -297,41 +316,40 @@ function analyzeAudio(dt) {
     const dataArray = new Uint8Array(analyser.frequencyBinCount);
     analyser.getByteFrequencyData(dataArray);
     
-    // 🎧 [왼쪽 노트] : 인덱스 0 ~ 4 (심장을 울리는 킥 드럼 & 서브 베이스)
     let lowSum = 0;
     for(let i = 0; i < 5; i++) lowSum += dataArray[i];
     let currentLowVol = lowSum / 5;
-    
     let lowSpike = currentLowVol - prevLowVol;
     prevLowVol = currentLowVol;
 
-    if (lowSpike > lowSpikeThreshold && currentLowVol > minLowVol && leftCooldown <= 0) {
-        spawnBall('left');
-        leftCooldown = Cooldown; 
-    }
-
-    // 🎹 [오른쪽 노트] : 인덱스 7 ~ 200 (넓은 대역폭 싹쓸이 모드!)
     let currentMidVol = 0;
-    
-    // 🚨 안전장치: 200과 실제 오디오 배열 길이 중 작은 값을 선택 (오류 방지)
     let maxIndex = 100;
-    
-    // 평균을 내지 않고, 해당 구간에서 '가장 큰 볼륨(Peak)'을 찾습니다.
     for(let i = 7; i < maxIndex; i++) { 
         if (dataArray[i] > currentMidVol) {
             currentMidVol = dataArray[i];
         }
     }
-    
     let midSpike = currentMidVol - prevHighVol;
     prevHighVol = currentMidVol;
 
-    // 최댓값을 쓰기 때문에 스파이크가 아주 확실하게 튑니다.
-    if (midSpike > highSpikeThreshold && currentMidVol > (minHighVol - 50) && rightCooldown <= 0) {
+    // 🚨 스폰 판정 로직 분리
+    let spawnLeft = (lowSpike > lowSpikeThreshold && currentLowVol > minLowVol && leftCooldown <= 0);
+    let spawnRight = (midSpike > highSpikeThreshold && currentMidVol > (minHighVol - 50) && rightCooldown <= 0);
+
+    // 🚨 왼쪽 쿵! 오른쪽 짝! 이 동시에 들어오면 황금색 센터 노트를 소환!
+    if (spawnLeft && spawnRight) {
+        spawnBall('center');
+        leftCooldown = Cooldown; 
+        rightCooldown = Cooldown;
+    } else if (spawnLeft) {
+        spawnBall('left');
+        leftCooldown = Cooldown; 
+    } else if (spawnRight) {
         spawnBall('right');
         rightCooldown = Cooldown; 
     }
 }
+
 function drawBackground() {
     ctx.strokeStyle = '#111';
     ctx.lineWidth = 1;
@@ -347,10 +365,57 @@ function drawBackground() {
     ctx.beginPath(); ctx.moveTo(hitLeftX, 0); ctx.lineTo(hitLeftX, canvas.height); ctx.stroke();
     ctx.strokeStyle = 'rgba(255, 0, 255, 0.2)';
     ctx.beginPath(); ctx.moveTo(hitRightX, 0); ctx.lineTo(hitRightX, canvas.height); ctx.stroke();
+    
+    // 🚨 센터 라인 그리기
+    ctx.strokeStyle = 'rgba(255, 215, 0, 0.2)';
+    ctx.beginPath(); ctx.moveTo(hitCenterX, 0); ctx.lineTo(hitCenterX, canvas.height); ctx.stroke();
     ctx.setLineDash([]);
 
+    // 🚨 타겟 라인 그리기 (센터 포함)
     drawTarget(hitLeftX, '#00ffff', leftZoneFlash);
     drawTarget(hitRightX, '#ff00ff', rightZoneFlash);
+    drawTarget(hitCenterX, '#ffd700', centerZoneFlash);
+}
+
+function drawVisualizer() {
+    if (!analyser || gameState !== 'playing') return;
+    if (!enableParticles) return;
+
+    const dataArray = new Uint8Array(analyser.frequencyBinCount);
+    analyser.getByteFrequencyData(dataArray);
+
+    ctx.save();
+    ctx.globalAlpha = 0.2; 
+
+    const visualBins = 60; 
+    const centerY = canvas.height / 2; 
+    const centerX = canvas.width / 2;  
+    
+    const barHeight = canvas.height / visualBins;
+
+    for (let i = 0; i < visualBins; i++) {
+        const barWidth = (dataArray[i] / 255) * (canvas.width * 0.4);
+        
+        const gradient = ctx.createLinearGradient(centerX - barWidth, 0, centerX + barWidth, 0);
+        gradient.addColorStop(0, '#ff00ff'); 
+        gradient.addColorStop(0.5, '#ffffff'); 
+        gradient.addColorStop(1, '#00ffff'); 
+        ctx.fillStyle = gradient;
+
+        const yPos = i * barHeight;
+
+        ctx.fillRect(centerX - barWidth, yPos, barWidth, barHeight - 1);
+        ctx.fillRect(centerX, yPos, barWidth, barHeight - 1);
+    }
+    
+    ctx.beginPath();
+    ctx.moveTo(centerX, 0);
+    ctx.lineTo(centerX, canvas.height);
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.5)';
+    ctx.lineWidth = 1;
+    ctx.stroke();
+
+    ctx.restore();
 }
 
 function drawTarget(x, color, flash) {
@@ -441,9 +506,12 @@ function gameLoop(timestamp) {
     }
 
     drawBackground();
+    drawVisualizer();
 
     if (leftZoneFlash > 0) leftZoneFlash -= dt * 8;
     if (rightZoneFlash > 0) rightZoneFlash -= dt * 8;
+    // 🚨 센터 타겟 플래시 페이드아웃
+    if (centerZoneFlash > 0) centerZoneFlash -= dt * 8;
 
     analyzeAudio(dt);
 
@@ -485,13 +553,16 @@ function gameLoop(timestamp) {
 function handleInput(side) {
     if (gameState !== 'playing') return;
 
+    // 🚨 입력에 따른 각 구역 플래시 설정
     if (side === 'left') leftZoneFlash = 1;
-    else rightZoneFlash = 1;
+    else if (side === 'right') rightZoneFlash = 1;
+    else if (side === 'center') centerZoneFlash = 1;
 
-    let targetX = side === 'left' ? hitLeftX : hitRightX;
+    let targetX = side === 'left' ? hitLeftX : (side === 'right' ? hitRightX : hitCenterX);
     let bestBallIndex = -1;
     let minDistanceY = 999;
 
+    // 🚨 요청한 사이드(왼/중/오른)와 똑같은 노트만 찾아서 판정!
     for (let i = 0; i < balls.length; i++) {
         if (balls[i].side === side) {
             let distY = Math.abs(balls[i].y - hitCenterY);
@@ -507,6 +578,7 @@ function handleInput(side) {
 
         if (minDistanceY <= 25) {
             messages.push(new Message('PERFECT', '#ffffff'));
+            // 황금 노트를 맞추면 점수를 1.5배로 줄 수도 있습니다! (현재는 동일하게 10점)
             score += 10;
             hp = Math.min(maxHp, hp + 3); 
             spawnParticles(targetX, balls[bestBallIndex].y, hitColor, 15);
@@ -534,24 +606,37 @@ function handleInput(side) {
         checkGameOver();
     }
 }
+
+// 🚨 키보드 이벤트 (스페이스바 누르면 'center' 이벤트 실행)
 window.addEventListener('keydown', (e) => {
     const key = e.key.toLowerCase();
-    if (['a', 's', 'd'].includes(key)) handleInput('left');
-    else if (['j', 'k', 'l'].includes(key)) handleInput('right');
+    
+    if (key === ' ' || e.code === 'Space') {
+        e.preventDefault(); 
+        handleInput('center'); // 진짜 황금 노트 타격 판정!
+    } else if (['a', 's', 'd'].includes(key)) {
+        handleInput('left');
+    } else if (['j', 'k', 'l'].includes(key)) {
+        handleInput('right');
+    }
 });
 
-// 📱 반응형 모바일 터치 지원
+// 📱 반응형 모바일 터치 지원 (화면 3분할: 좌 / 중앙 / 우)
 canvas.addEventListener('touchstart', (e) => {
     e.preventDefault(); 
+    
+    const screenWidth = window.innerWidth;
+    const thirdOfScreen = screenWidth / 3;
 
     for (let i = 0; i < e.changedTouches.length; i++) {
         const touch = e.changedTouches[i];
         
-        // 🚨 캔버스 픽셀 대신, '스마트폰 실제 화면(window)'의 X 좌표를 기준으로 판정!
-        if (touch.clientX < window.innerWidth / 2) {
+        if (touch.clientX < thirdOfScreen) {
             handleInput('left');
-        } else {
+        } else if (touch.clientX > thirdOfScreen * 2) {
             handleInput('right');
+        } else {
+            handleInput('center'); // 중앙 터치 시 황금 노트 타격 판정!
         }
     }
 }, { passive: false });

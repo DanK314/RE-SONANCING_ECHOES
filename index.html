@@ -91,7 +91,8 @@
             text-align: center;
         }
 
-        #trackSelect:focus, #trackSelect:hover {
+        #trackSelect:focus,
+        #trackSelect:hover {
             box-shadow: 0 0 15px #00ffff;
             background: rgba(0, 255, 255, 0.1);
         }
@@ -177,9 +178,17 @@
         }
 
         @keyframes pulse {
-            0% { box-shadow: 0 0 10px #00ffff; }
-            50% { box-shadow: 0 0 25px #00ffff; }
-            100% { box-shadow: 0 0 10px #00ffff; }
+            0% {
+                box-shadow: 0 0 10px #00ffff;
+            }
+
+            50% {
+                box-shadow: 0 0 25px #00ffff;
+            }
+
+            100% {
+                box-shadow: 0 0 10px #00ffff;
+            }
         }
 
         /* 🚨 반응형 캔버스 (화면 크기에 맞춰 자동 조절) */
@@ -205,19 +214,43 @@
             color: #ff00ff;
             text-shadow: 0 0 5px #ff00ff;
             text-align: center;
+            line-height: 1.5;
         }
 
         /* 📱 모바일 화면을 위한 최적화 (가로 폭 600px 이하) */
         @media (max-width: 600px) {
-            h1.game-title { font-size: 45px; }
-            .subtitle { font-size: 16px; margin-bottom: 20px; }
-            #title-screen { padding: 25px 20px; }
-            button#startBtn { font-size: 26px; padding: 12px 20px; }
-            .slider-row { font-size: 18px; }
-            input[type="file"]::file-selector-button { font-size: 16px; padding: 6px 12px; }
-            
+            h1.game-title {
+                font-size: 45px;
+            }
+
+            .subtitle {
+                font-size: 16px;
+                margin-bottom: 20px;
+            }
+
+            #title-screen {
+                padding: 25px 20px;
+            }
+
+            button#startBtn {
+                font-size: 26px;
+                padding: 12px 20px;
+            }
+
+            .slider-row {
+                font-size: 18px;
+            }
+
+            input[type="file"]::file-selector-button {
+                font-size: 16px;
+                padding: 6px 12px;
+            }
+
             /* 모바일 드롭다운 메뉴 사이즈 조정 */
-            #trackSelect { font-size: 18px; padding: 10px; }
+            #trackSelect {
+                font-size: 18px;
+                padding: 10px;
+            }
         }
     </style>
 </head>
@@ -252,14 +285,20 @@
                 <input type="range" id="rightSens" class="right-slider" min="3" max="10" value="6">
             </div>
         </div>
+        <div style="margin-bottom: 15px; color: white; font-family: 'VT323';">
+            <label>
+                <input type="checkbox" id="particleToggle" checked> 파티클 효과 켜기
+            </label>
+        </div>
 
         <button id="startBtn">START GAME</button>
     </div>
 
     <canvas id="gameCanvas" width="400" height="600" class="hidden"></canvas>
+    
     <div id="controlsInfo" class="controls-info hidden">
-        PC: [A,S,D] & [J,K,L] <br>
-        MOBILE: TOUCH LEFT / RIGHT
+        PC: <span style="color:#00ffff;">[A,S,D]</span> | <span style="color:#ffd700;">[SPACE]</span> | <span style="color:#ff00ff;">[J,K,L]</span> <br>
+        MOBILE: TOUCH LEFT / <span style="color:#ffd700;">CENTER</span> / RIGHT
     </div>
 
     <script src="game.js"></script>
